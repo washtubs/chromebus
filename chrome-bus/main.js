@@ -4,25 +4,18 @@ var Chrome = require('chrome-remote-interface');
 
 var tabCache = {};
 var delim='||'
+var tabDelim='|+|'
 
 function event(name, id, oldTab, newTab) {
     // new
     // closed
     // urlchanged
     // focuschanged
-    if (name === 'new') {
-        console.log('new' + delim + id + delim + tabAttributes(newTab));
-    } else if (name === 'closed') {
-        console.log('closed' + delim + id + delim + tabAttributes(oldTab));
-    } else if (name === 'urlchanged') {
-        console.log('urlchanged' + delim + id + delim + oldTab.url + delim + newTab.url);
-    } else if (name === 'focuschanged') {
-        console.log('focuschanged' + delim + id + delim + oldTab.focused + delim + newTab.focused);
-    }
+    console.log(name + delim + id + delim + (oldTab ? tabAttributes(oldTab) : 'nil') + delim + (newTab ? tabAttributes(newTab) : 'nil'));
 }
 
 function tabAttributes(tab) {
-    return tab.url + delim + tab.type + delim + tab.focused;
+    return tab.url + tabDelim + tab.type + tabDelim + tab.focused;
 }
 
 function main() {
