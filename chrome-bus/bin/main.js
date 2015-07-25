@@ -19,7 +19,7 @@ function tabAttributes(tab) {
 }
 
 function main() {
-    Chrome.listTabs(function (err, tabs) {
+    Chrome.List(function (err, tabs) {
         if (!err) {
             for (var id in tabCache) {
                 var found = false;
