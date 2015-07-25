@@ -1,0 +1,77 @@
+
+Architecture thoughts
+
+Engine must be able to recieve via stdin or tail
+
+Plugin, recieves records via a channel supplied by the engine?
+plugin needs to be able to receive via stdin OR in memory channels
+plugin needs to be started and stopped either in memory or via external commandline calls
+
+each plugin should be initialized with data from the aggregator
+
+Hypothesis 1:
+
+BEGIN Client inherited lib:
+
+    -- Core
+    GetRecordFromChannel() {
+        // where to get the channel?
+        // get from EngineChannels
+    }
+    GetRecordFromStdin() {
+        // straight forward
+    }
+    * decide on which function based on configuration
+
+    EngineChannels map[PluginSpec][*ChromebusRecord chan]
+
+    -- Chrome controllers
+    Navigate()
+    Focus()
+    NewTab()
+    CloseTab()
+    
+BEGIN Plugin
+    Init()
+    Cleanup()
+END Plugin
+
+END Client inherited lib
+
+BEGIN Engine side 
+
+    --Plugin controllers
+    Start() {
+        // start the GetRecord driven loop
+        // inmem? start a go routine
+        // not inmem? start with a os.exec `pluginmain.go` with a stdin stream. 
+        //   So basically a launcher that facilitates start and stop calls perhaps by watching for SIGINT 
+        //   Always open the stream but theoretically it's not needed
+    }
+    Stop() {
+        // stop the loop
+        // inmem? terminate the goroutine
+        // not inmem? figure out how os.exec blocking works, might require a SIGINT or something
+    }
+    SetState(Enabled|Disabled) { *OPTIONAL*
+        // disable or enable the plugin. stopping the plugin will potentially cause it to lose
+        // state.
+        // inmem? additional channel deployed on Load()
+        // not inmem? specialized record passed via stdin
+    }
+    Load(<PluginSpec>) {
+        // must be called before invoking Start() or Stop()
+        // inmem? create and deploy a channel to EngineChannels
+        // not inmem? Acknowledge the existence of the executable
+    }
+
+    -- Plugin core
+    Broadcast() {
+        // inmem? plugins must be statically defined. Should all be in their own packages
+        //   call start but a channel must be placed in a global array for them to grab
+        //   the placing of the channel, is analagous to the external work required to invoke
+        //   a plugin from a directory of executables.
+        // not inmem? consult a common directory of executable plugins
+    }
+
+END Engine side
