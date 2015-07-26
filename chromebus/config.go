@@ -42,8 +42,8 @@ func CreateEngine() *Engine {
 		&ChromebusRecordStdinReceiver{},
 		getDefaultEnabledPlugins(),
 		&InMemPluginController{
-			pluginChannels: map[PluginSpec]chan *ChromebusRecord{
-				Mock: make(chan *ChromebusRecord, 100),
+			pluginChannels: map[PluginSpec]chan ChromebusRecord{
+				Mock: make(chan ChromebusRecord, 0),
 			},
 		},
 	}

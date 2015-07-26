@@ -7,11 +7,11 @@ import (
 const Mock PluginSpec = "Mock"
 
 var mockPlugin *Plugin = &Plugin{
-	Init: func(input chan *ChromebusRecord) {
+	Init: func(input chan ChromebusRecord) {
 		log.Printf("Started MOCK plugin")
-		//for r := range input {
-		log.Printf("Mock %s", <-input)
-		//}
+		for r := range input {
+			log.Printf("Mock %s", r)
+		}
 	},
 	Cleanup: func() {
 		log.Printf("Cleaning up MOCK plugin")

@@ -3,10 +3,10 @@
 
 package chromebus
 
-//import "log"
+import "log"
 
 type InMemPluginController struct {
-	pluginChannels map[PluginSpec]chan *ChromebusRecord
+	pluginChannels map[PluginSpec]chan ChromebusRecord
 }
 
 // TODO: dummy code this is the only way I know how to assert an interface is implemented
@@ -25,10 +25,7 @@ func (i *InMemPluginController) Cleanup(spec PluginSpec) {
 }
 
 func (i *InMemPluginController) Send(spec PluginSpec, record *ChromebusRecord) {
-	// TODO: check if the spec is there?
-	go func() {
-		i.pluginChannels[spec] <- record
-	}()
+	i.pluginChannels[spec] <- *record
 }
 
 func init() {
