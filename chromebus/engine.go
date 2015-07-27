@@ -1,7 +1,5 @@
 package chromebus
 
-//import "log"
-
 type Engine struct {
 	rcv        ChromebusRecordReceiver
 	plugins    []PluginSpec
@@ -17,11 +15,15 @@ func (e *Engine) Start() {
 func (e *Engine) run() {
 	for _, pluginSpec := range e.plugins {
 		e.pluginCtrl.Init(pluginSpec)
-		defer e.pluginCtrl.Cleanup(pluginSpec)
 	}
 	for record := new(ChromebusRecord); e.rcv.GetRecord(record); {
-		//log.Printf("record: %s", record)
 		e.broadcast(record)
+	}
+}
+
+func (e *Engine) CleanUp() {
+	for _, pluginSpec := range e.plugins {
+		e.pluginCtrl.Cleanup(pluginSpec)
 	}
 }
 

@@ -3,8 +3,6 @@
 
 package chromebus
 
-import "log"
-
 type InMemPluginController struct {
 	pluginChannels map[PluginSpec]chan ChromebusRecord
 }
@@ -14,14 +12,12 @@ var test PluginController = &InMemPluginController{}
 
 func (i *InMemPluginController) Init(spec PluginSpec) {
 	go func() {
-		PluginRegistry[spec].Init(i.pluginChannels[spec])
+		PluginRegistry[spec].Init(i.pluginChannels[spec], AggregatorModel)
 	}()
 }
 
 func (i *InMemPluginController) Cleanup(spec PluginSpec) {
-	go func() {
-		PluginRegistry[spec].Cleanup()
-	}()
+	PluginRegistry[spec].Cleanup()
 }
 
 func (i *InMemPluginController) Send(spec PluginSpec, record *ChromebusRecord) {

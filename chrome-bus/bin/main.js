@@ -15,7 +15,7 @@ function event(name, id, oldTab, newTab) {
 }
 
 function tabAttributes(tab) {
-    return tab.url + tabDelim + tab.type + tabDelim + tab.focused;
+    return tab.url + tabDelim + tab.type + tabDelim + tab.index + tabDelim + tab.focused;
 }
 
 function main() {
@@ -41,6 +41,7 @@ function main() {
                 newtabc = {
                     url: tab.url,
                     type: tab.type,
+                    index: i,
                     focused: !!(i === 0)
                 }
                 if (!tabCache.hasOwnProperty(id)) {
@@ -56,6 +57,10 @@ function main() {
                 }
                 tabCache[id] = newtabc;
             }
+        } else {
+            console.error("Something went wrong. Failed to connect? Maybe chrome isn't running with the debug port");
+            console.error(err);
+            process.exit(1)
         }
     });
 }

@@ -1,12 +1,15 @@
 package chromebus
 
 import (
+	"log"
+	"strconv"
 	"strings"
 )
 
 type ChromeTab struct {
 	url     string
 	tabType string
+	index   int
 	focused string
 }
 
@@ -24,10 +27,15 @@ func TabFromString(s string) *ChromeTab {
 	fields := strings.Split(s, tabDelimiter)
 	url := fields[0]
 	tabType := fields[1]
-	focused := fields[2]
+	index, err := strconv.Atoi(fields[2])
+	if err != nil {
+		log.Fatal("Failed to convert tab index %s to integer", fields[2])
+	}
+	focused := fields[3]
 	return &ChromeTab{
 		url:     url,
 		tabType: tabType,
+		index:   index,
 		focused: focused,
 	}
 }

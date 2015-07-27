@@ -25,6 +25,10 @@ const (
 
 const USE_MOCK_PLUGIN = true
 
+var AggregatorModel = Aggregator{
+	tabCache: make(map[string]*ChromeTab),
+}
+
 func getDefaultEnabledPlugins() []PluginSpec {
 	if USE_MOCK_PLUGIN {
 		return []PluginSpec{

@@ -3,6 +3,8 @@ package main
 import (
 	"chromebus"
 	"log"
+	"os"
+	"os/signal"
 	//"os/exec"
 )
 
@@ -15,7 +17,16 @@ func main() {
 	//log.Printf("%s", str)
 	//str, _ = recv.GetRecord()
 	//log.Printf("%s", str)
-	chromebus.CreateEngine().Start()
+	e := chromebus.CreateEngine()
+	go func() {
+		e.Start()
+	}()
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, os.Interrupt, os.Kill)
+	<-signalChannel
+	log.Printf("YAAAY")
+	e.CleanUp()
+
 	//rcv := ChromebusRecordStdinReceiver{}
 	//exec.Command("date")
 }

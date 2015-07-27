@@ -5,7 +5,7 @@ import (
 )
 
 type Plugin struct {
-	Init    func(input chan ChromebusRecord)
+	Init    func(input chan ChromebusRecord, aggregator Aggregator)
 	Cleanup func()
 }
 
