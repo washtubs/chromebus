@@ -24,7 +24,6 @@ func main() {
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, os.Kill)
 	<-signalChannel
-	log.Printf("YAAAY")
 	e.CleanUp()
 
 	//rcv := ChromebusRecordStdinReceiver{}

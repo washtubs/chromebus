@@ -25,14 +25,12 @@ const (
 
 const USE_MOCK_PLUGIN = true
 
-var AggregatorModel = Aggregator{
-	tabCache: make(map[string]*ChromeTab),
-}
-
 func getDefaultEnabledPlugins() []PluginSpec {
 	if USE_MOCK_PLUGIN {
 		return []PluginSpec{
-			Mock,
+			//Mock,
+			ActivityTracker,
+			SiteBlocker,
 		}
 	} else {
 		return []PluginSpec{
@@ -47,7 +45,9 @@ func CreateEngine() *Engine {
 		getDefaultEnabledPlugins(),
 		&InMemPluginController{
 			pluginChannels: map[PluginSpec]chan ChromebusRecord{
-				Mock: make(chan ChromebusRecord, 0),
+				Mock:            make(chan ChromebusRecord, 0),
+				ActivityTracker: make(chan ChromebusRecord, 0),
+				SiteBlocker:     make(chan ChromebusRecord, 0),
 			},
 		},
 	}

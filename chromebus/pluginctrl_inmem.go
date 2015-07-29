@@ -3,6 +3,8 @@
 
 package chromebus
 
+//import "log"
+
 type InMemPluginController struct {
 	pluginChannels map[PluginSpec]chan ChromebusRecord
 }

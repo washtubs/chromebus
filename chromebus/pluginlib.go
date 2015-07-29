@@ -1,7 +1,9 @@
 package chromebus
 
 import (
+	//"log"
 	"os/exec"
+	"strconv"
 )
 
 type Plugin struct {
@@ -9,21 +11,22 @@ type Plugin struct {
 	Cleanup func()
 }
 
-func Focus(id string) {
-	exec.Command(Bin.activateTab, id)
+func Focus(id string) (e error) {
+	e = exec.Command(Bin.activateTab, id).Run()
+	return
 }
 
-func NewTab(url string) {
-	exec.Command(Bin.newTab, url)
+func NewTab(url string) (e error) {
+	e = exec.Command(Bin.newTab, url).Run()
+	return
 }
 
-func CloseTab(id string) {
-	exec.Command(Bin.closeTab, id)
+func CloseTab(id string) (e error) {
+	e = exec.Command(Bin.closeTab, id).Run()
+	return
 }
 
-func Navigate(id string, url string) {
-	// TODO: this won't work. we need to use the index instead of the id
-	// A prereq for this is to set up an aggregator
-
-	//exec.Command(Bin.navigateTab, id, url)
+func Navigate(index int, url string) (e error) {
+	exec.Command(Bin.navigateTab, strconv.Itoa(index), url).Run()
+	return
 }

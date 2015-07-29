@@ -10,7 +10,7 @@ type ChromeTab struct {
 	url     string
 	tabType string
 	index   int
-	focused string
+	focused bool
 }
 
 type ChromebusRecord struct {
@@ -31,7 +31,7 @@ func TabFromString(s string) *ChromeTab {
 	if err != nil {
 		log.Fatal("Failed to convert tab index %s to integer", fields[2])
 	}
-	focused := fields[3]
+	focused := fields[3] == "true"
 	return &ChromeTab{
 		url:     url,
 		tabType: tabType,

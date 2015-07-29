@@ -22,6 +22,7 @@ fn = function (chrome) {
             'Page.navigate',
             {'url': url},
             function(err, response) {
+                console.error(response)
                 chrome.close()
                 if (err) {
                     console.error(response)
@@ -31,7 +32,6 @@ fn = function (chrome) {
                 }
             }
         );
-        chrome.close();
     });
 };
 

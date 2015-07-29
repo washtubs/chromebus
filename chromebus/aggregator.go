@@ -1,21 +1,23 @@
 package chromebus
 
-import ()
+import (
+//"log"
+)
 
 type Aggregator struct {
 	tabCache map[string]*ChromeTab
 }
 
 func (a *Aggregator) aggregate(record ChromebusRecord) {
-	switch record.action {
-	case string(New):
-	case string(UrlChanged):
-	case string(FocusChanged):
-		a.tabCache[record.id] = record.newTab
-	case string(Closed):
+	if record.action == string(Closed) {
 		delete(a.tabCache, record.id)
-		// TODO: we need to update as well
+	} else {
+		a.tabCache[record.id] = record.newTab
 	}
+}
+
+func (a *Aggregator) getTabById(id string) *ChromeTab {
+	return a.tabCache[id]
 }
 
 func (a *Aggregator) getIndexById(id string) (index int) {
