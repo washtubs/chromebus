@@ -6,8 +6,8 @@ import (
 )
 
 type Notifier interface {
-	Init() (e error)
-	SendMessage(message string)
+	Init() error
+	SendMessage(string)
 }
 
 type PushBulletNotifier struct{}

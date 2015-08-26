@@ -13,9 +13,7 @@ var siteBlockerPlugin *Plugin = &Plugin{
 		log.Printf("Started SiteBlocker plugin")
 		for r := range input {
 			aggregator.aggregate(r)
-			if (r.action == string(FocusChanged) ||
-				r.action == string(UrlChanged)) &&
-				aggregator.getTabById(r.id).focused { // very important that this is short circuited
+			if r.action != string(Closed) && aggregator.getTabById(r.id).focused { // very important that this is short circuited
 				//if r.action == string(UrlChanged) {
 				tab := aggregator.getTabById(r.id)
 				if ShouldBlockSites && GoofingOff(tab.url) {

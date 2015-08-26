@@ -26,9 +26,7 @@ var plugin *Plugin = &Plugin{
 		go monitor()
 		for r := range input {
 			aggregator.aggregate(r)
-			if (r.action == string(FocusChanged) ||
-				r.action == string(UrlChanged)) &&
-				aggregator.getTabById(r.id).focused { // very important that this is short circuited
+			if r.action != string(Closed) && aggregator.getTabById(r.id).focused { // very important that this is short circuited
 				focusedTab := aggregator.getTabById(r.id)
 				goofing = GoofingOff(focusedTab.url)
 			}
