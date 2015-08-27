@@ -1,5 +1,10 @@
 package chromebus
 
+import (
+	"log"
+	"net/http"
+)
+
 type Engine struct {
 	rcv        ChromebusRecordReceiver
 	plugins    []PluginSpec
@@ -12,10 +17,16 @@ func (e *Engine) Start() {
 	e.run()
 }
 
+func welcome(w http.ResponseWriter, r *http.Request) {
+	log.Printf("HIHIHIHI")
+}
+
 func (e *Engine) run() {
 	for _, pluginSpec := range e.plugins {
 		e.pluginCtrl.Init(pluginSpec)
 	}
+	http.HandleFunc("/", welcome)
+	go http.ListenAndServe(":8081", nil)
 	for record := new(ChromebusRecord); e.rcv.GetRecord(record); {
 		e.broadcast(record)
 	}

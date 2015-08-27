@@ -1,13 +1,14 @@
 package chromebus
 
 import (
-	//"log"
+	"net/http"
 	"os/exec"
 	"strconv"
 )
 
 type Plugin struct {
 	Init    func(input chan ChromebusRecord, aggregator Aggregator)
+	Handle  func(w http.ResponseWriter, r *http.Request)
 	Cleanup func()
 }
 
