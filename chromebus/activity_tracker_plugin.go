@@ -26,7 +26,6 @@ var wasWarned = false
 var leewayExpired = false
 var leewayMutex = new(sync.Mutex)
 var suspendCount = 0
-var suspendMinutes = 1 // TODO move to config
 var suspendEnabled = false
 
 //func activityTrackerHandler(w http.ResponseWriter, r *http.Request) {
@@ -56,7 +55,7 @@ var plugin *Plugin = &Plugin{
 		log.Printf("Started Activity plugin")
 
 		cron := cron.New()
-		cron.AddFunc("0 0 15 * * *", resetLeeway) // 3pm every day
+		cron.AddFunc(resetCron, resetLeeway)
 		//cron.AddFunc("0 */5 * * * *", resetLeeway) // 3pm every day
 		cron.Start()
 		initLeeway()

@@ -10,3 +10,5 @@ var GoofHosts = [...]string{
 
 const minutesBeforeBlock = 2
 const minutesBeforeWarn = 1
+const suspendMinutes = 5
+const resetCron = "0 0 23 * * *" // 3pm every day
