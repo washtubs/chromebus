@@ -1,7 +1,7 @@
 package main
 
 import (
-	"chromebus"
+	"github.com/washtubs/chromebus"
 	"log"
 	"os"
 	"os/signal"

@@ -6,9 +6,11 @@ const Redirect = "https://isitchristmas.com/"
 // sample site hosts
 var GoofHosts = [...]string{
 	"www.homestarrunner.com",
+	"www.facebook.com",
+	"www.reddit.com",
 }
 
-const minutesBeforeBlock = 2
-const minutesBeforeWarn = 1
+const minutesBeforeBlock = 60
+const minutesBeforeWarn = 50
 const suspendMinutes = 5
 const resetCron = "0 0 23 * * *" // 3pm every day

@@ -1,4 +1,4 @@
-chrome-bus/bin/node_modules
-chrome-bus/events
+js/node_modules
+events
 chromebus/t
 chromebus/cmd/cmd

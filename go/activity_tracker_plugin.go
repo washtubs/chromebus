@@ -28,10 +28,6 @@ var leewayMutex = new(sync.Mutex)
 var suspendCount = 0
 var suspendEnabled = false
 
-//func activityTrackerHandler(w http.ResponseWriter, r *http.Request) {
-
-//}
-
 func issueChallenge() (passed bool) {
 	challengeText := "You cannot step twice into the same river; for other waters are continually flowing in."
 	cmd := exec.Command("zenity", "--text", challengeText, "--entry")
