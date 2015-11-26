@@ -125,11 +125,11 @@ func monitor() {
 			log.Printf("Started goofing: time %d", t)
 		} else if lastStartedGoofing != nil {
 			latestDuration := time.Since(*lastStartedGoofing)
-			currentTime := int64(totalDuration) + int64(latestDuration)
+			currentTime := uint64(totalDuration) + uint64(latestDuration)
 			if currentTime >= targetDuration() {
 				leewayExpired = true
 				suspendEnabled = false
-			} else if currentTime > int64(time.Duration(minutesBeforeWarn*time.Minute)) && !wasWarned {
+			} else if currentTime > uint64(time.Duration(minutesBeforeWarn*time.Minute)) && !wasWarned {
 				// TODO: pushbullet. this cant work on the server otherwise
 				//notifier.SendMessage(strconv.Itoa(minutesBeforeBlock-minutesBeforeWarn) + " minutes till block")
 				wasWarned = true
@@ -145,12 +145,12 @@ func monitor() {
 	}
 }
 
-func targetDuration() int64 {
-	return int64(time.Duration((minutesBeforeBlock + suspendMinutes*suspendCount) * int(time.Minute)))
+func targetDuration() uint64 {
+	return uint64(time.Duration(uint64(minutesBeforeBlock+suspendMinutes*suspendCount) * uint64(time.Minute)))
 }
 
 func pushDuration(duration time.Duration) {
-	totalDuration = time.Duration(int64(totalDuration) + int64(duration))
+	totalDuration = time.Duration(uint64(totalDuration) + uint64(duration))
 	timesSpentGoofing[index] = duration
 	index++
 }
