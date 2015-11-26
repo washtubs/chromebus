@@ -1,0 +1,8 @@
+[Unit]
+Description=chromebus
+
+[Service]
+ExecStart=/usr/bin/chromebus -server -p ActivityTracker -P 8099
+
+[Install]
+WantedBy=multi-user.target

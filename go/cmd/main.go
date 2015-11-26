@@ -20,6 +20,7 @@ import (
 var plugins []chromebus.PluginSpec = make([]chromebus.PluginSpec, 0, 32)
 var pluginsDefined bool = false
 var port int = 0
+var serverMode bool = false
 
 func defFlags(flag *flag.Flag) {
 	switch flag.Name {
@@ -39,10 +40,10 @@ func defFlags(flag *flag.Flag) {
 func init() {
 	flag.String("p", "default", "specify a plugin")
 	flag.IntVar(&port, "P", 0, "specify a port number to listen on")
+	flag.BoolVar(&serverMode, "server", false, "specify whether this is a server: doesnt need an env")
 }
 
 func main() {
-	chromebus.EnvSetup()
 	log.SetFlags(log.Flags() | log.Llongfile)
 
 	//recv := &chromebus.ChromebusRecordStdinReceiver{}
@@ -52,6 +53,9 @@ func main() {
 	//log.Printf("%s", str)
 	flag.Parse()
 	flag.VisitAll(defFlags)
+	if !serverMode {
+		chromebus.EnvSetup()
+	}
 	var e *chromebus.Engine
 	if pluginsDefined {
 		e = chromebus.CreateEngine(plugins, port)

@@ -1,6 +1,7 @@
 package chromebus
 
 import (
+	"flag"
 	"log"
 	"net/http"
 	"net/url"
@@ -10,7 +11,7 @@ import (
 
 const SiteBlocker PluginSpec = "SiteBlocker"
 
-var trackerUrlPrefix string = "http://localhost:8099/" + string(ActivityTracker)
+var trackerHost string
 
 var goofingBlocker bool = false
 var blockerEngaged bool = false
@@ -43,13 +44,13 @@ var siteBlockerPlugin *Plugin = &Plugin{
 		log.Printf(r.URL.Path)
 		switch r.URL.Path {
 		case "/" + string(SiteBlocker) + "/suspend":
-			expiredR, expiredErr := http.Get(trackerUrlPrefix + "/isleewayexpired")
+			expiredR, expiredErr := http.Get(trackerUrlPrefix() + "/isleewayexpired")
 			if expiredErr != nil {
 				log.Fatal(expiredErr)
 			}
 			if expiredR.StatusCode == leewayIsExpired {
 				if issueChallenge() {
-					_, suspendErr := http.Get(trackerUrlPrefix + "/suspend")
+					_, suspendErr := http.Get(trackerUrlPrefix() + "/suspend")
 					if suspendErr != nil {
 						log.Fatal(suspendErr)
 					}
@@ -63,6 +64,13 @@ var siteBlockerPlugin *Plugin = &Plugin{
 	},
 	Cleanup: func() {
 	},
+}
+
+func trackerUrlPrefix() string {
+	if trackerHost == "" {
+		panic("trackerHost not specified!")
+	}
+	return "http://" + trackerHost + "/" + string(ActivityTracker)
 }
 
 func GoofingOff(urlRaw string) bool {
@@ -86,7 +94,7 @@ func report(g bool) {
 	} else {
 		method = "notgoofing"
 	}
-	r, err := http.Get(trackerUrlPrefix + "/" + method)
+	r, err := http.Get(trackerUrlPrefix() + "/" + method)
 	if err != nil {
 		log.Printf("ERROR: requesting tracker: %s", err)
 	}
@@ -120,4 +128,5 @@ func issueChallenge() (passed bool) {
 
 func init() {
 	PluginRegistry[SiteBlocker] = siteBlockerPlugin
+	flag.StringVar(&trackerHost, "tracker", "", "specify an activity tracker host")
 }
