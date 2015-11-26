@@ -3,12 +3,14 @@ package chromebus
 import (
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type Engine struct {
 	rcv        ChromebusRecordReceiver
 	plugins    []PluginSpec
 	pluginCtrl PluginController
+	port       int
 }
 
 var primaryConfig map[Component]interface{}
@@ -26,7 +28,8 @@ func (e *Engine) run() {
 		e.pluginCtrl.Init(pluginSpec)
 	}
 	http.HandleFunc("/", welcome)
-	go http.ListenAndServe(":8081", nil)
+	log.Printf("Listening on %s", ":"+strconv.Itoa(e.port))
+	go http.ListenAndServe(":"+strconv.Itoa(e.port), nil)
 	for record := new(ChromebusRecord); e.rcv.GetRecord(record); {
 		e.broadcast(record)
 	}

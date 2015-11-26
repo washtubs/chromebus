@@ -4,15 +4,16 @@ import (
 	"github.com/robfig/cron"
 	"log"
 	"net/http"
-	"net/url"
-	"os/exec"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
 
 const ActivityTracker PluginSpec = "ActivityTracker"
+
+const shouldBlockHttpStatus = 202
+const shouldNotBlockHttpStatus = 203
+const leewayIsExpired = 204
+const leewayIsNotExpired = 205
 
 var goofing bool = false
 var ticker *time.Ticker
@@ -27,24 +28,7 @@ var leewayExpired = false
 var leewayMutex = new(sync.Mutex)
 var suspendCount = 0
 var suspendEnabled = false
-
-func issueChallenge() (passed bool) {
-	challengeText := "You cannot step twice into the same river; for other waters are continually flowing in."
-	cmd := exec.Command("zenity", "--text", challengeText, "--entry")
-	out, err := cmd.Output()
-	answer := strings.TrimSpace(string(out))
-	passed = false
-	if err == nil {
-		if answer == challengeText {
-			passed = true
-		} else {
-			log.Printf("strings did not match: %s vs %s", challengeText, answer)
-		}
-	} else {
-		log.Printf("cancelled")
-	}
-	return
-}
+var manualBlocked = false
 
 var plugin *Plugin = &Plugin{
 	Init: func(input chan ChromebusRecord, aggregator Aggregator) {
@@ -56,42 +40,60 @@ var plugin *Plugin = &Plugin{
 		cron.Start()
 		initLeeway()
 		go monitor()
-		for r := range input {
-			aggregator.aggregate(r)
-			if r.action != string(Closed) && aggregator.getTabById(r.id).focused { // very important that this is short circuited
-				focusedTab := aggregator.getTabById(r.id)
-				goofing = GoofingOff(focusedTab.url)
-			}
-		}
 	},
 	Handle: func(w http.ResponseWriter, r *http.Request) {
 		log.Printf(r.URL.Path)
 		switch r.URL.Path {
 		case "/" + string(ActivityTracker) + "/suspend":
-			log.Printf("suspending...")
 			if leewayExpired {
-				if issueChallenge() {
-					leewayMutex.Lock()
-					suspendEnabled = true
-					suspendCount++
-					leewayMutex.Unlock()
-				}
-			} else {
-				log.Printf("leeway has not expired. this is unnecessary. aborting request")
+				log.Printf("suspending...")
+				leewayMutex.Lock()
+				suspendEnabled = true
+				suspendCount++
+				leewayMutex.Unlock()
 			}
+		case "/" + string(ActivityTracker) + "/isleewayexpired":
+			if leewayExpired {
+				w.WriteHeader(leewayIsExpired)
+			} else {
+				w.WriteHeader(leewayIsNotExpired)
+			}
+		case "/" + string(ActivityTracker) + "/block":
+			leewayMutex.Lock()
+			manualBlocked = true
+			leewayMutex.Unlock()
+		case "/" + string(ActivityTracker) + "/unblock":
+			leewayMutex.Lock()
+			manualBlocked = false
+			leewayMutex.Unlock()
+		case "/" + string(ActivityTracker) + "/goofing":
+			leewayMutex.Lock()
+			goofing = true
+			if shouldBlockSites() {
+				w.WriteHeader(shouldBlockHttpStatus)
+			} else {
+				w.WriteHeader(shouldNotBlockHttpStatus)
+			}
+			leewayMutex.Unlock()
+		case "/" + string(ActivityTracker) + "/notgoofing":
+			leewayMutex.Lock()
+			goofing = false
+			w.WriteHeader(202)
+			leewayMutex.Unlock()
 		default:
 			log.Printf("not recognized... %s" + r.URL.Path)
 		}
 	},
 	Cleanup: func() {
 		if leewayExpired {
-			notifier.SendMessage("You failed to stay under your max time.")
+			// TODO: pushbullet. this cant work on the server otherwise
+			//notifier.SendMessage("You failed to stay under your max time.")
 		}
 	},
 }
 
 func shouldBlockSites() bool {
-	return leewayExpired && !suspendEnabled
+	return manualBlocked || (leewayExpired && !suspendEnabled)
 }
 
 func initLeeway() {
@@ -106,7 +108,6 @@ func initLeeway() {
 }
 
 func resetLeeway() {
-	notifier.SendMessage("I'm annoying")
 	initLeeway()
 }
 
@@ -121,7 +122,6 @@ func monitor() {
 		if goofing && lastStartedGoofing == nil {
 			lastStartedGoofing = new(time.Time)
 			*lastStartedGoofing = t
-			//notifier.SendMessage("Started goofing")
 			log.Printf("Started goofing: time %d", t)
 		} else if lastStartedGoofing != nil {
 			latestDuration := time.Since(*lastStartedGoofing)
@@ -130,7 +130,8 @@ func monitor() {
 				leewayExpired = true
 				suspendEnabled = false
 			} else if currentTime > int64(time.Duration(minutesBeforeWarn*time.Minute)) && !wasWarned {
-				notifier.SendMessage(strconv.Itoa(minutesBeforeBlock-minutesBeforeWarn) + " minutes till block")
+				// TODO: pushbullet. this cant work on the server otherwise
+				//notifier.SendMessage(strconv.Itoa(minutesBeforeBlock-minutesBeforeWarn) + " minutes till block")
 				wasWarned = true
 			}
 			//log.Printf("Still goofing %d", latestDuration.String())
@@ -152,18 +153,4 @@ func pushDuration(duration time.Duration) {
 	totalDuration = time.Duration(int64(totalDuration) + int64(duration))
 	timesSpentGoofing[index] = duration
 	index++
-}
-
-func GoofingOff(urlRaw string) bool {
-	url, err := url.Parse(urlRaw)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Printf("Host: " + url.Host)
-	for _, candidate := range GoofHosts {
-		if url.Host == candidate {
-			return true
-		}
-	}
-	return false
 }

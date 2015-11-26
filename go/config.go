@@ -1,5 +1,9 @@
 package chromebus
 
+import (
+	"errors"
+)
+
 // use specs to lookup Plugin objects
 type PluginSpec string
 type PluginCouplingMode int
@@ -24,6 +28,7 @@ const (
 // can find it, or invoke the plugin's executable
 
 const USE_MOCK_PLUGIN = true
+const defaultPort = 8081
 
 func getDefaultEnabledPlugins() []PluginSpec {
 	if USE_MOCK_PLUGIN {
@@ -39,16 +44,37 @@ func getDefaultEnabledPlugins() []PluginSpec {
 	}
 }
 
-func CreateEngine() *Engine {
+func StringToPluginSpec(s string) (PluginSpec, error) {
+	switch s {
+	case "ActivityTracker":
+		return ActivityTracker, nil
+	case "SiteBlocker":
+		return SiteBlocker, nil
+	}
+	return "", errors.New(s + " is not a valid plugin")
+}
+
+func CreateEngine(specifiedPlugins []PluginSpec, port int) *Engine {
+	var enabledPlugins []PluginSpec
+	if specifiedPlugins != nil {
+		enabledPlugins = specifiedPlugins
+	} else {
+		enabledPlugins = getDefaultEnabledPlugins()
+	}
+	if port == 0 {
+		port = defaultPort
+	}
 	return &Engine{
 		&ChromebusRecordStdinReceiver{},
-		getDefaultEnabledPlugins(),
+		enabledPlugins,
 		&InMemPluginController{
 			pluginChannels: map[PluginSpec]chan ChromebusRecord{
-				Mock:            make(chan ChromebusRecord, 0),
+				// just allocate all the channels unnecessarily. It's not like it's expensive.
+				//Mock:            make(chan ChromebusRecord, 0),
 				ActivityTracker: make(chan ChromebusRecord, 0),
 				SiteBlocker:     make(chan ChromebusRecord, 0),
 			},
 		},
+		port,
 	}
 }

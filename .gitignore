@@ -1,4 +1,4 @@
 js/node_modules
 events
-chromebus/t
-chromebus/cmd/cmd
+go/t
+go/cmd/cmd
