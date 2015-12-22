@@ -13,21 +13,21 @@ type Plugin struct {
 }
 
 func Focus(id string) (e error) {
-	e = exec.Command(Bin.activateTab, id).Run()
+	e = exec.Command("node", Bin.activateTab, id).Run()
 	return
 }
 
 func NewTab(url string) (e error) {
-	e = exec.Command(Bin.newTab, url).Run()
+	e = exec.Command("node", Bin.newTab, url).Run()
 	return
 }
 
 func CloseTab(id string) (e error) {
-	e = exec.Command(Bin.closeTab, id).Run()
+	e = exec.Command("node", Bin.closeTab, id).Run()
 	return
 }
 
 func Navigate(index int, url string) (e error) {
-	exec.Command(Bin.navigateTab, strconv.Itoa(index), url).Run()
+	exec.Command("node", Bin.navigateTab, strconv.Itoa(index), url).Run()
 	return
 }
