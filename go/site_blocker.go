@@ -112,6 +112,11 @@ func issueChallenge() (passed bool) {
 	challengeText := "You cannot step twice into the same river; for other waters are continually flowing in."
 	cmd := exec.Command("zenity", "--text", challengeText, "--entry")
 	out, err := cmd.Output()
+	if err != nil {
+		log.Printf("It seems zenity is not installed. so we cannot issue a proper challenge. Granting access.")
+		passed = true
+		return
+	}
 	answer := strings.TrimSpace(string(out))
 	passed = false
 	if err == nil {

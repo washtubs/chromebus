@@ -1,7 +1,7 @@
 package chromebus
 
 import (
-	"log"
+	"fmt"
 	"os/exec"
 )
 
@@ -36,7 +36,8 @@ func (NotifySendNotifier) Init() (e error) {
 func (NotifySendNotifier) SendMessage(message string) {
 	err := exec.Command("notify-send", message).Run()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Errorf("notify-send not found.", err)
+		fmt.Printf("Message was %s:", message)
 	}
 }
 
