@@ -4,6 +4,7 @@ import (
 	"github.com/robfig/cron"
 	"log"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -29,6 +30,7 @@ var leewayMutex = new(sync.Mutex)
 var suspendCount = 0
 var suspendEnabled = false
 var manualBlocked = false
+var autoCloseCountdown = 360
 
 var plugin *Plugin = &Plugin{
 	Init: func(input chan ChromebusRecord, aggregator Aggregator) {
@@ -58,6 +60,16 @@ var plugin *Plugin = &Plugin{
 			} else {
 				w.WriteHeader(leewayIsNotExpired)
 			}
+		case "/" + string(ActivityTracker) + "/open":
+			leewayMutex.Lock()
+			c := r.URL.Query().Get("count")
+			log.Printf("opening for " + c + " seconds")
+			var err error
+			autoCloseCountdown, err = strconv.Atoi(c)
+			if err != nil {
+				log.Printf("ERROR: " + c + " is not an integer")
+			}
+			leewayMutex.Unlock()
 		case "/" + string(ActivityTracker) + "/block":
 			leewayMutex.Lock()
 			manualBlocked = true
@@ -93,7 +105,9 @@ var plugin *Plugin = &Plugin{
 }
 
 func shouldBlockSites() bool {
-	return manualBlocked || (leewayExpired && !suspendEnabled)
+	// TODO: we are now ignoreing manualBlock to reduce complexity. Either re-add if desired, or remove all logic that surrounds it.
+	// using autoCloseCountdown for everything instead
+	return autoCloseCountdown == 0 || (leewayExpired && !suspendEnabled)
 }
 
 func initLeeway() {
@@ -119,6 +133,9 @@ func monitor() {
 	ticker = time.NewTicker(1 * time.Second)
 	for t := range ticker.C {
 		leewayMutex.Lock()
+		if autoCloseCountdown > 0 {
+			autoCloseCountdown--
+		}
 		if goofing && lastStartedGoofing == nil {
 			lastStartedGoofing = new(time.Time)
 			*lastStartedGoofing = t
