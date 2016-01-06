@@ -68,4 +68,4 @@ function main() {
 main();
 setInterval(function() {
     main();
-}, 4000);
+}, 2000);
