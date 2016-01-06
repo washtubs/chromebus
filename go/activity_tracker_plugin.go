@@ -31,7 +31,7 @@ var leewayMutex = new(sync.Mutex)
 var suspendCount = 0
 var suspendEnabled = false
 var manualBlocked = false
-var autoCloseCountdown = 360
+var autoCloseCountdown = 0
 
 var plugin *Plugin = &Plugin{
 	Init: func(input chan ChromebusRecord, aggregator Aggregator) {
