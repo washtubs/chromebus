@@ -11,6 +11,7 @@ import (
 
 const ActivityTracker PluginSpec = "ActivityTracker"
 
+// HTTP response codes
 const shouldBlockHttpStatus = 202
 const shouldNotBlockHttpStatus = 203
 const leewayIsExpired = 204
@@ -92,6 +93,19 @@ var plugin *Plugin = &Plugin{
 			goofing = false
 			w.WriteHeader(202)
 			leewayMutex.Unlock()
+		case "/" + string(ActivityTracker) + "/logstatus":
+			leewayMutex.Lock()
+			if autoCloseCountdown == 0 {
+				log.Printf("Site blocker engaged because autoCloseCountdown has reached 0")
+			}
+			if leewayExpired {
+				if suspendEnabled {
+					log.Printf("Leeway has expired (%dm/%dm) but suspend is enabled", totalDuration/time.Minute, minutesBeforeBlock)
+				} else {
+					log.Printf("Leeway has expired (%dm/%dm)", totalDuration/time.Minute, minutesBeforeBlock)
+				}
+			}
+			leewayMutex.Unlock()
 		default:
 			log.Printf("not recognized... %s" + r.URL.Path)
 		}
@@ -135,6 +149,9 @@ func monitor() {
 		leewayMutex.Lock()
 		if autoCloseCountdown > 0 {
 			autoCloseCountdown--
+			if autoCloseCountdown == 0 {
+				goofing = false
+			}
 		}
 		if goofing && lastStartedGoofing == nil {
 			lastStartedGoofing = new(time.Time)

@@ -10,7 +10,7 @@ var GoofHosts = [...]string{
 	"www.reddit.com",
 }
 
-const minutesBeforeBlock = 2
-const minutesBeforeWarn = 1
+const minutesBeforeBlock = 60
+const minutesBeforeWarn = 5
 const suspendMinutes = 5
-const resetCron = "0 0 23 * * *"
+const resetCron = "0 0 15 * * *"
