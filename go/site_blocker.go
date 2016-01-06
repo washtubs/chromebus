@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 const SiteBlocker PluginSpec = "SiteBlocker"
@@ -19,25 +20,26 @@ var blockerEngaged bool = false
 var siteBlockerPlugin *Plugin = &Plugin{
 	Init: func(input chan ChromebusRecord, aggregator Aggregator) {
 		log.Printf("Started SiteBlocker plugin")
+		go trackCurrentTab(&aggregator)
 		for r := range input {
 			aggregator.aggregate(r)
-			if r.action != string(Closed) && aggregator.getTabById(r.id).focused { // very important that this is short circuited
-				focusedTab := aggregator.getTabById(r.id)
-				goofingBefore := goofingBlocker
-				goofingBlocker = GoofingOff(focusedTab.url)
-				if goofingBlocker != goofingBefore {
-					report(goofingBlocker)
-				}
-				//if r.action == string(UrlChanged) {
-				tab := aggregator.getTabById(r.id)
-				if blockerEngaged && GoofingOff(tab.url) {
-					err := Navigate(aggregator.getIndexById(r.id), Redirect)
-					notifier.SendMessage("Quit goofin'. Redirecting to " + Redirect)
-					if err != nil {
-						log.Fatal(err)
-					}
-				}
-			}
+			//if r.action != string(Closed) && aggregator.getTabById(r.id).focused { // very important that this is short circuited
+			//focusedTab := aggregator.getTabById(r.id)
+			//goofingBefore := goofingBlocker
+			//goofingBlocker = GoofingOff(focusedTab.url)
+			//if goofingBlocker != goofingBefore {
+			//report(goofingBlocker)
+			//}
+			////if r.action == string(UrlChanged) {
+			//tab := aggregator.getTabById(r.id)
+			//if blockerEngaged && GoofingOff(tab.url) {
+			//err := Navigate(aggregator.getIndexById(r.id), Redirect)
+			//notifier.SendMessage("Quit goofin'. Redirecting to " + Redirect)
+			//if err != nil {
+			//log.Fatal(err)
+			//}
+			//}
+			//}
 		}
 	},
 	Handle: func(w http.ResponseWriter, r *http.Request) {
@@ -73,6 +75,28 @@ func trackerUrlPrefix() string {
 	return "http://" + trackerHost + "/" + string(ActivityTracker)
 }
 
+func trackCurrentTab(aggregator *Aggregator) {
+	ticker = time.NewTicker(2 * time.Second)
+	for _ = range ticker.C {
+		focusedTab := aggregator.getFocusedTab()
+		goofingBefore := goofingBlocker
+		goofingBlocker = GoofingOff(focusedTab.url)
+		if goofingBlocker != goofingBefore {
+			report(goofingBlocker)
+			if blockerEngaged && goofingBlocker {
+				notifier.SendMessage("Quit goofin'. Redirecting to " + Redirect)
+			}
+		}
+		//if r.action == string(UrlChanged) {
+		if blockerEngaged && goofingBlocker {
+			err := Navigate(focusedTab.index, Redirect)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}
+}
+
 func GoofingOff(urlRaw string) bool {
 	url, err := url.Parse(urlRaw)
 	if err != nil {
@@ -94,6 +118,7 @@ func report(g bool) {
 	} else {
 		method = "notgoofing"
 	}
+	log.Printf("Reporting %s", trackerUrlPrefix()+"/"+method)
 	r, err := http.Get(trackerUrlPrefix() + "/" + method)
 	if err != nil {
 		log.Printf("ERROR: requesting tracker: %s", err)
