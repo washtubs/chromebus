@@ -1,4 +1,6 @@
 js/node_modules
+js/bin/node_modules
 events
 go/t
 go/cmd/cmd
+nohup.out
