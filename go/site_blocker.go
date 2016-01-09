@@ -21,6 +21,7 @@ var siteBlockerPlugin *Plugin = &Plugin{
 	Init: func(input chan ChromebusRecord, aggregator Aggregator) {
 		log.Printf("Started SiteBlocker plugin")
 		go trackCurrentTab(&aggregator)
+		go reportRegularlyIfGoofing()
 		for r := range input {
 			aggregator.aggregate(r)
 			//if r.action != string(Closed) && aggregator.getTabById(r.id).focused { // very important that this is short circuited
@@ -75,6 +76,18 @@ func trackerUrlPrefix() string {
 	return "http://" + trackerHost + "/" + string(ActivityTracker)
 }
 
+func reportRegularlyIfGoofing() {
+	ticker = time.NewTicker(reportIntervalSeconds * time.Second)
+	for _ = range ticker.C {
+		// NOTE: theoretically not thread safe, but not a big deal, just means
+		// we may redundantly report that we are not goofing
+		if goofingBlocker {
+			log.Printf("Regular reporting goofing, will do so again in %d seconds", reportIntervalSeconds)
+			reportAndBlock(goofingBlocker)
+		}
+	}
+}
+
 func trackCurrentTab(aggregator *Aggregator) {
 	ticker = time.NewTicker(2 * time.Second)
 	for _ = range ticker.C {
@@ -82,10 +95,7 @@ func trackCurrentTab(aggregator *Aggregator) {
 		goofingBefore := goofingBlocker
 		goofingBlocker = GoofingOff(focusedTab.url)
 		if goofingBlocker != goofingBefore {
-			report(goofingBlocker)
-			if blockerEngaged && goofingBlocker {
-				notifier.SendMessage("Quit goofin'. Redirecting to " + Redirect)
-			}
+			reportAndBlock(goofingBlocker)
 		}
 		//if r.action == string(UrlChanged) {
 		if blockerEngaged && goofingBlocker {
@@ -109,6 +119,13 @@ func GoofingOff(urlRaw string) bool {
 		}
 	}
 	return false
+}
+
+func reportAndBlock(g bool) {
+	report(goofingBlocker)
+	if blockerEngaged && goofingBlocker {
+		notifier.SendMessage("Quit goofin'. Redirecting to " + Redirect)
+	}
 }
 
 func report(g bool) {
