@@ -2,7 +2,7 @@ package chromebus
 
 import (
 	"bufio"
-	"github.com/ActiveState/tail"
+	"github.com/hpcloud/tail"
 	"log"
 	"os"
 )
