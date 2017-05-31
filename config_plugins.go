@@ -13,5 +13,5 @@ var GoofHosts = [...]string{
 const minutesBeforeBlock = 60
 const minutesBeforeWarn = 5
 const suspendMinutes = 5
-const resetCron = "0 0 15 * * *"
+const resetCron = "0 0 1,16 * * *"
 const reportIntervalSeconds = 5
