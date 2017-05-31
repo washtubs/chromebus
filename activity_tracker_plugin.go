@@ -1,12 +1,13 @@
 package chromebus
 
 import (
-	"github.com/robfig/cron"
 	"log"
 	"net/http"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/robfig/cron"
 )
 
 const ActivityTracker PluginSpec = "ActivityTracker"
@@ -41,15 +42,16 @@ var plugin *Plugin = &Plugin{
 		cron.AddFunc(resetCron, resetLeeway)
 		//cron.AddFunc("0 */5 * * * *", resetLeeway) // 3pm every day
 		cron.Start()
+
+		log.Printf("cron initialized with [%s]", resetCron)
 		initLeeway()
 		go monitor()
 	},
 	Handle: func(w http.ResponseWriter, r *http.Request) {
-		log.Printf(r.URL.Path)
 		switch r.URL.Path {
 		case "/" + string(ActivityTracker) + "/suspend":
 			if leewayExpired {
-				log.Printf("suspending...")
+				log.Printf("Suspending...")
 				leewayMutex.Lock()
 				suspendEnabled = true
 				suspendCount++
@@ -136,6 +138,7 @@ func initLeeway() {
 }
 
 func resetLeeway() {
+	log.Print("Resetting...")
 	initLeeway()
 }
 
